@@ -2,7 +2,6 @@ import uuid
 from sqlalchemy import Column, String, DateTime, Text
 from sqlalchemy.dialects.sqlite import BLOB
 from datetime import datetime, timezone
-
 from app.db.base import Base
 
 
