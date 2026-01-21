@@ -5,6 +5,10 @@ from app.schemas.jobs import JobCreate, JobUpdate
 
 
 def create_job(db: Session, job: JobCreate) -> Job:
+  # Skip duplicates
+  if job_exists(db, job.url):
+    raise ValueError("Job with this URL already exists.")
+  
   # Create a new job record in the database.
 
   job_data = job.model_dump()
@@ -65,3 +69,10 @@ def delete_job(db: Session, job_id: str) -> bool:
   db.commit()
 
   return True
+
+def job_exists(db: Session, url: str) -> bool:
+  """
+  Check if a job with the given URL already exists.
+  """
+
+  return db.query(Job).filter(Job.url == url).first() is not None
