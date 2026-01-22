@@ -1,9 +1,11 @@
 from typing import List, Type
 from sqlalchemy.orm import Session
+from rich.console import Console
 from .base import BaseScraper
 from app.services import job_service
 from app.schemas.jobs import JobCreate
 
+console = Console()
 
 class ScraperEngine:
   """
@@ -18,7 +20,7 @@ class ScraperEngine:
     Runs a single scraper and saves jobs.
     Returns number of jobs saved.
     """
-    print(f"Running scraper: {scraper.source_name}")
+    console.print(f"[blue]🔎 Running scraper:[/blue] {scraper.source_name}")
 
     jobs = scraper.scrape()
     saved_count = 0
@@ -29,9 +31,9 @@ class ScraperEngine:
         job_service.create_job(self.db, job_schema)
         saved_count += 1
       except Exception as e:
-        print(f"Skipping job due to error: {e}")
+        console.print(f"[bold red]Skipping job due to error: {e}[/bold red]")
 
-    print(f"Saved {saved_count} jobs from {scraper.source_name}")
+    console.print(f"[green]Saved {saved_count} jobs from {scraper.source_name}[/green]")
     return saved_count
 
   def run_multiple(self, scrapers: List[BaseScraper]) -> int:
@@ -42,5 +44,5 @@ class ScraperEngine:
     for scraper in scrapers:
       total += self.run_scraper(scraper)
 
-    print(f"Total jobs saved: {total}")
+    console.print(f"Total jobs saved: [green]{total}[/green]")
     return total
