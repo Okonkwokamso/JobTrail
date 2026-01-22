@@ -1,5 +1,6 @@
 import typer
 from typing import Optional
+from rich.console import Console
 from sqlalchemy.orm import Session
 from app.db.session import SessionLocal
 from app.scrappers.engine import ScraperEngine
@@ -9,6 +10,7 @@ from app.scrappers.remoteok import RemoteOKScraper
 #scrape_app = typer.Typer(help="Scrape job sources")
 
 app = typer.Typer()
+console = Console()
 
 SCRAPERS = {
   "weworkremotely": WeWorkRemotelyScraper,
@@ -30,30 +32,32 @@ def scrape(
   """
 
   if not source and not all:
-    typer.echo("❌ Please specify --source or --all")
+    console.print("[bold red]❌ Please specify --source or --all[/bold red]")
     raise typer.Exit(code=1)
 
   if source and all:
-    typer.echo("❌ Use either --source or --all, not both")
+    console.print("[bold red]❌ Use either --source or --all, not both[/bold red]")
     raise typer.Exit(code=1)
 
   db = get_db()
   engine = ScraperEngine(db)
 
+  console.print("[bold cyan]🚀 Starting scraping process...[/bold cyan]")
+
   if all:
     scrapers = [cls() for cls in SCRAPERS.values()]
     total = engine.run_multiple(scrapers)
-    typer.echo(f"✅ Finished scraping all sources. Total jobs saved: {total}")
+    console.print(f"\n[bold green]✅ Finished scraping all sources. Total jobs saved: {total}[bold green]")
   else:
     source = source.lower()
 
     if source not in SCRAPERS:
-      typer.echo(f"❌ Unknown source: {source}")
-      typer.echo(f"Available sources: {', '.join(SCRAPERS.keys())}")
+      console.print(f"[bold red]❌ Unknown source:[/bold red] {source}")
+      console.print(f"[yellow]Available sources:[/yellow] {', '.join(SCRAPERS.keys())}")
       raise typer.Exit(code=1)
 
     scraper = SCRAPERS[source]()
     count = engine.run_scraper(scraper)
-    typer.echo(f"✅ Finished scraping {source}. Jobs saved: {count}")
+    typer.echo(f"\n[bold green]✅ Finished scraping {source}. Jobs saved: {count}[/bold green]")
 
   db.close()
