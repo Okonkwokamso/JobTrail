@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jobtrail"
+version = "1.0.0"
+description = "Your personalised job tracker"
+requires-python = ">=3.8"
+
+[project.scripts]
+jobtrail = "app.cli.main:main"
