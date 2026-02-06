@@ -3,9 +3,12 @@ from rich.console import Console
 from rich.table import Table
 from app.db.session import SessionLocal
 from app.services.job_service import get_all_jobs 
+from app.utils.logging import get_logger
 
 app = typer.Typer()
 console = Console()
+
+logger = get_logger(__name__)
 
 
 @app.command()
@@ -17,7 +20,7 @@ def list():
   jobs = get_all_jobs(db)
 
   if not jobs:
-    console.print("[yellow]No jobs found.[/yellow]")
+    logger.info("[yellow]No jobs found.[/yellow]")
     return
 
   table = Table(title="Saved Jobs")

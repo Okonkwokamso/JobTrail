@@ -4,9 +4,12 @@ from rich.console import Console
 from app.db.session import SessionLocal
 from app.services.job_service import get_all_jobs
 from app.utils.export import export_csv, export_json
+from app.utils.logging import get_logger
 
 app = typer.Typer()
 console = Console()
+
+logger = get_logger(__name__)
 
 SUPPORTED_FORMATS = ["csv", "json"]
 
@@ -22,15 +25,15 @@ def export(
   format = format.lower()
 
   if format not in SUPPORTED_FORMATS:
-    console.print(f"[bold red]❌ Unsupported format:[/bold red] {format}")
-    console.print(f"[yellow]Supported formats:[/yellow] {', '.join(SUPPORTED_FORMATS)}")
+    logger.info(f"[bold red]❌ Unsupported format:[/bold red] {format}")
+    logger.info(f"[yellow]Supported formats:[/yellow] {', '.join(SUPPORTED_FORMATS)}")
     raise typer.Exit(code=1)
 
   db = SessionLocal()
   jobs = get_all_jobs(db)
 
   if not jobs:
-    console.print("[yellow]No jobs to export.[/yellow]")
+    logger.info("[yellow]No jobs to export.[/yellow]")
     return
 
   output_dir = Path("exports")
@@ -41,5 +44,5 @@ def export(
   elif format == "json":
     export_json(jobs, output_dir / "jobs.json")
 
-  console.print(f"[bold green]✅ Export completed:[/bold green] exports/jobs.{format}")
+  logger.info(f"[bold green]✅ Export completed:[/bold green] exports/jobs.{format}")
   db.close()

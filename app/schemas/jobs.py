@@ -7,8 +7,8 @@ from uuid import UUID
 class JobBase(BaseModel):
   title: str
   company: str
-  location: str
-  job_type: str
+  location: str 
+  job_type: str 
   salary: Optional[str] = None
   description: Optional[str] = None
   url: str

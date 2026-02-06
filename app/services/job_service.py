@@ -1,25 +1,44 @@
 from sqlalchemy.orm import Session
 from uuid import UUID
+from sqlalchemy.exc import IntegrityError
 from app.models import Job
 from app.schemas.jobs import JobCreate, JobUpdate
+from app.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 
-def create_job(db: Session, job: JobCreate) -> Job:
+def create_job(db: Session, job: JobCreate) -> Job | None:
   # Skip duplicates
-  if job_exists(db, job.url):
-    raise ValueError("Job with this URL already exists.")
+  existing_job = db.query(Job).filter(Job.url == job.url).first()
+  if existing_job:
+    logger.debug(f"Job with URL {job.url} already exists. Skipping.")
+    return None
   
+  # if job_exists(db, job.url):
+  #   raise ValueError("Job with this URL already exists.")
+  
+
   # Create a new job record in the database.
+  try:
+    job_data = job.model_dump()
+    db_job = Job(**job_data)
 
-  job_data = job.model_dump()
-  db_job = Job(**job_data)
+    # Save to database
+    db.add(db_job)
+    db.commit()
+    db.refresh(db_job)
 
-  # Save to database
-  db.add(db_job)
-  db.commit()
-  db.refresh(db_job)
-
-  return db_job
+    return db_job
+  
+  except IntegrityError as e:
+    db.rollback()
+    logger.warning(f"Database integrity error (likely duplicate): {job_data.url}")
+    return None
+  except Exception as e:
+    db.rollback()
+    logger.error(f"Error creating job: {str(e)}")
+    raise
 
 
 def get_all_jobs(db: Session):
