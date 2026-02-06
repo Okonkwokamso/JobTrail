@@ -1,6 +1,9 @@
 import requests
 from .base import BaseScraper
 from app.schemas.jobs import JobCreate
+from app.utils.logging import get_logger
+
+logger = get_logger(__name__)
 
 class RemotiveScraper(BaseScraper):
   def __init__(self):
@@ -9,8 +12,12 @@ class RemotiveScraper(BaseScraper):
   url = "https://remotive.com/api/remote-jobs"
 
   def scrape(self) -> list[dict]:
-    raw_jobs = self.fetch_jobs()
-    return self.parse_jobs(raw_jobs)
+    try:
+      raw_jobs = self.fetch_jobs()
+      return self.parse_jobs(raw_jobs)
+    except Exception as e:
+      logger.exception(f"Error scraping Remotive: {str(e)}")
+      return []
   
   def fetch_jobs(self) -> list[dict]:
     response = requests.get(self.url, timeout=10)

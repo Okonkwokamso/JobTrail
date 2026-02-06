@@ -27,7 +27,7 @@ class RemoteOKScraper(BaseScraper):
       List of normalized job dictionaries
     """
     try:
-      console.print("Fetching jobs from RemoteOK API...")
+      logger.info("Fetching jobs from RemoteOK API...")
       
       # Use the inherited fetch_page method
       response = self.fetch_page(self.API_URL)
@@ -39,7 +39,7 @@ class RemoteOKScraper(BaseScraper):
       # First item is metadata, skip it
       jobs = data[1:] if len(data) > 1 else []
       
-      console.print(f"Found {len(jobs)} jobs from RemoteOK")
+      logger.info(f"Found {len(jobs)} jobs from RemoteOK")
       
       # Parse each job and normalize
       normalized_jobs = []
@@ -48,22 +48,16 @@ class RemoteOKScraper(BaseScraper):
         if parsed_job:
           normalized_jobs.append(self.normalize_job(parsed_job))
       
-      console.print(f"Successfully parsed {len(normalized_jobs)} jobs")
+      logger.info(f"Successfully parsed {len(normalized_jobs)} jobs")
       return normalized_jobs
       
     except Exception as e:
-      console.log(f"Error scraping RemoteOK: {e}")
+      logger.exception(f"Error scraping RemoteOK: {e}")
       return []
   
   def _parse_job(self, job_data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Extract relevant fields from RemoteOK API response.
-    
-    Args:
-      job_data: Raw job data from API
-      
-    Returns:
-      Dictionary with extracted fields
     """
     try:
       # Extract salary information
@@ -92,18 +86,12 @@ class RemoteOKScraper(BaseScraper):
       }
       
     except Exception as e:
-      console.log(f"Error parsing job: {e}")
+      logger.exception(f"Error parsing job: {e}")
       return None
   
   def _format_salary(self, job_data: Dict[str, Any]) -> str:
     """
     Format salary information into a string.
-    
-    Args:
-      job_data: Raw job data
-      
-    Returns:
-      Formatted salary string or None
     """
     salary_min = job_data.get('salary_min')
     salary_max = job_data.get('salary_max')
@@ -120,12 +108,6 @@ class RemoteOKScraper(BaseScraper):
   def _determine_job_type(self, job_data: Dict[str, Any]) -> str:
     """
     Determine job type from tags.
-    
-    Args:
-      job_data: Raw job data
-      
-    Returns:
-      Job type string
     """
     tags = [tag.lower() for tag in job_data.get('tags', [])]
     
