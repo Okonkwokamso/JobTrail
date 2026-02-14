@@ -1,6 +1,7 @@
 import streamlit as st
 from app.web import config
-from app.web.database import get_db, get_job_stats
+from app.web.database import get_db
+from app.services.job_service import get_job_stats
 from app.web.utils import init_session_state
 from app.web.components import dashboard, jobs, applications, scrape, settings
 
@@ -25,8 +26,8 @@ page = st.sidebar.radio(
 st.sidebar.markdown("---")
 st.sidebar.markdown("### Quick Stats")
 stats = get_job_stats(db)
-st.sidebar.metric("Total Jobs", stats['total'])
-st.sidebar.metric("Added This Week", stats['recent_7days'])
+st.sidebar.metric("Total Jobs", stats.total)
+st.sidebar.metric("Added This Week", stats.recent_7days)
 
 # Route to pages
 if page == "📊 Dashboard":

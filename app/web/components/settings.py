@@ -1,6 +1,6 @@
 import streamlit as st
 from app.web.utils import jobs_to_dataframe
-from app.web.database import get_jobs_with_filters
+from app.services.job_service import get_jobs
 from app.models.job import Job
 
 
@@ -29,7 +29,7 @@ def _render_database_tab(db):
   with col1:
     st.markdown("**Export Data**")
     if st.button("📥 Export to CSV"):
-        jobs = get_jobs_with_filters(db)
+        jobs = get_jobs(db)
         df = jobs_to_dataframe(jobs)
         csv = df.to_csv(index=False)
         st.download_button(

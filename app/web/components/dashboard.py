@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from sqlalchemy import desc
-from app.web.database import get_job_stats
+from app.services.job_service import get_job_stats
 from app.web.utils import status_badge
 from app.models.job import Job
 
@@ -21,20 +21,20 @@ def render(db):
   with col1:
     st.metric(
       "Total Jobs",
-      stats['total'],
-      delta=f"+{stats['recent_7days']} this week"
+      stats.total,
+      delta=f"+{stats.recent_7days} this week"
     )
   
   with col2:
-    saved_count = stats['by_status'].get('saved', 0)
+    saved_count = stats.by_status.get('saved', 0)
     st.metric("Saved", saved_count)
   
   with col3:
-    applied_count = stats['by_status'].get('applied', 0)
+    applied_count = stats.by_status.get('applied', 0)
     st.metric("Applied", applied_count)
   
   with col4:
-    interview_count = stats['by_status'].get('interview', 0)
+    interview_count = stats.by_status.get('interview', 0)
     st.metric("Interviews", interview_count)
   
   st.markdown("---")
@@ -44,9 +44,9 @@ def render(db):
   
   with col1:
     st.subheader("Jobs by Status")
-    if stats['by_status']:
+    if stats.by_status:
       status_df = pd.DataFrame(
-        list(stats['by_status'].items()),
+        list(stats.by_status.items()),
         columns=['Status', 'Count']
       )
       fig = px.pie(
@@ -57,15 +57,15 @@ def render(db):
         color_discrete_sequence=px.colors.qualitative.Set3
       )
       fig.update_layout(height=300)
-      st.plotly_chart(fig, use_container_width=True)
+      st.plotly_chart(fig, width='stretch')
     else:
       st.info("No jobs tracked yet. Start by scraping some jobs!")
   
   with col2:
     st.subheader("Jobs by Source")
-    if stats['by_source']:
+    if stats.by_source:
       source_df = pd.DataFrame(
-        list(stats['by_source'].items()),
+        list(stats.by_source.items()),
         columns=['Source', 'Count']
       )
       fig = px.bar(
@@ -76,7 +76,7 @@ def render(db):
         color_discrete_sequence=px.colors.qualitative.Pastel
       )
       fig.update_layout(height=300, showlegend=False)
-      st.plotly_chart(fig, use_container_width=True)
+      st.plotly_chart(fig, width='stretch')
     else:
       st.info("No jobs tracked yet.")
   

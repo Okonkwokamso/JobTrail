@@ -1,7 +1,8 @@
 import streamlit as st
-from app.web.database import get_jobs_with_filters
+from app.services.job_service import get_jobs
 from app.web.utils import status_badge, jobs_to_dataframe
 from app.models.job import Job
+from app.schemas.jobs import JobFilters
 
 
 def render(db):
@@ -28,16 +29,29 @@ def render(db):
       type_filter = st.selectbox("Job Type", job_types)
   
   # Build filters dict
-  filters = {
+  filters_dict = {
     'search': search if search else None,
-    'source': source_filter,
-    'status': status_filter,
-    'job_type': type_filter
+    'source': source_filter if source_filter != 'All' else None,
+    'status': status_filter if status_filter != 'All' else None,
+    'job_type': type_filter if type_filter != 'All' else None
   }
+
+  filters = JobFilters(**filters_dict)
+
+  # DEBUG: Show what filters are being applied
+  #st.write("DEBUG - Filters:", filters.model_dump())
   
   # Get filtered jobs
-  jobs = get_jobs_with_filters(db, filters)
+  jobs = get_jobs(db, filters)
+
+  # DEBUG: Show how many jobs were returned
+  #st.write(f"DEBUG - Jobs returned: {len(jobs)}")
+
   df = jobs_to_dataframe(jobs)
+
+  # DEBUG: Show if dataframe is empty
+  # st.write(f"DEBUG - DataFrame empty: {df.empty}")
+  # st.write(f"DEBUG - DataFrame shape: {df.shape if not df.empty else 'N/A'}")
   
   if not df.empty:
     st.markdown(f"**Showing {len(df)} jobs**")
@@ -48,11 +62,15 @@ def render(db):
     if view_mode == "Table":
       st.dataframe(
         df[['Title', 'Company', 'Location', 'Type', 'Status', 'Source', 'Date Added']],
-        use_container_width=True,
+        width='stretch',
         hide_index=True
       )
     else:
       _render_card_view(df, db)
+
+    # Job detail modal
+    if st.session_state.get('show_job_detail'):
+      _render_job_detail(db)
   else:
     st.info("No jobs found matching your filters.")
 
